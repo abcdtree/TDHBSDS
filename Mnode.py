@@ -34,9 +34,9 @@ class Mnode:
     def set_child(self, child, left = True):
         if child != None:
             if left:
-                left_child = child
+                self.left_child = child
             else:
-                right_child = child
+                self.right_child = child
             child.set_parent(self)
             self.update_children_number()
 
@@ -51,7 +51,7 @@ class Mnode:
         self.genotype = genotype
 
     def get_information(self):
-        return [self.node_id, self.genotype, self.mutation_name, self.cnv_N, self.cnv_T]
+        return [self.node_id, self.genotype, self.mutation_name, self.cnv_N, self.cnv_T, self.ccf]
 
 class TEHtree:
     root = None
@@ -60,7 +60,7 @@ class TEHtree:
     def __init__(self, file = ""):
         if len(file) == 0:
             #randomly build a tree
-            self.name_pool = self.buildNamePoor()
+            self.name_pool = self.buildNamePool()
             self.buildRandomTree()
         else:
             #read the tree structure from a csv
@@ -68,6 +68,16 @@ class TEHtree:
 
     def getName(self):
         return self.name_pool.pop(0)
+
+    def buildNamePool(self):
+        char_list = []
+        for i in range(65, 91):
+            char_list.append(chr(i))
+        name_pool = char_list[:]
+        for c in char_list:
+            for b in char_list:
+                name_pool.append(c + b)
+        return name_pool
 
     def buildRandomTree(self):
         mroot = Mnode()
@@ -77,13 +87,16 @@ class TEHtree:
 
     def recRandomBuild(self, node):
         ccp = node.ccf
+        #print ccp
         if ccp > 1:
             left = random.randint(1, ccp/2)
             right = ccp - left
             left_node = Mnode()
-            left_node.set_basic_information(node.node_id+"0", self.getname(), left)
+            left_node.set_basic_information(node.node_id+"0", self.getName(), left)
+            node.set_child(left_node)
             right_node = Mnode()
-            right_node.set_basic_information(node.node_id + "1", self.getname(), right)
+            right_node.set_basic_information(node.node_id + "1", self.getName(), right)
+            node.set_child(right_node, False)
             self.recRandomBuild(left_node)
             self.recRandomBuild(right_node)
 
@@ -121,8 +134,10 @@ class TEHtree:
     def outputCSV(self, fileName):
         title = ["Node_id", "Genotype", "Mutation_Name", "CNV_N", "CNV_T", "CCF"]
         output_list = []
-        self.recOut(self.root, output_list)
-        sorted(output_list, key= lambda x: int(x[0]))
+        #print self.root.left_child.mutation_name
+        self.recout(self.root, output_list)
+        #print output_list
+        output_list.sort(key= lambda x: int(x[0]))
         with open(fileName, 'wb') as msf:
             spamwriter = csv.writer(msf, dialect="excel")
             spamwriter.writerow(title)
@@ -135,4 +150,4 @@ class TEHtree:
         if node.left_child != None:
             self.recout(node.left_child, output_list)
         if node.right_child != None:
-            self.recount(node.right_child, output_list)
+            self.recout(node.right_child, output_list)
