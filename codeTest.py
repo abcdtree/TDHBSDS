@@ -1,5 +1,5 @@
-from Mnode import *
+import random
+from THtree import *
 
-
-kTree = TEHtree("sampleTree.csv")
-kTree.outputCSV("testTree1.csv")
+MyTree = THTree()
+MyTree.outputCSV("testTree.csv")

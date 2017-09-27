@@ -1,9 +1,23 @@
 import csv
 import random
 
+'''class Mutation:
+    locus_name = ""
+    cnv_R = 2
+    cnv_RS = 2
+    cnv_V = 2
+    genotype = 0
+
+    def __init__(self, name):
+        self.locus_name = name
+
+    def set_cnv(self, cnv_R, cnv_RS, cnv_V):
+        self.cnv_R = cnv_R
+        self.cnv_RS = cnv_RS
+        self.cnv_V = cnv_V
 
 class Mnode:
-    mutation_name = ""
+    mutations = []
     #cancer cell fraction
     ccf = 0
     #normal copy number
@@ -19,7 +33,7 @@ class Mnode:
     node_id = "0"
 
     def __init__(self):
-        self.mutation_name = ""
+        self.mutations = []
 
     def set_parent(self, parent):
         self.parent = parent
@@ -40,9 +54,9 @@ class Mnode:
             child.set_parent(self)
             self.update_children_number()
 
-    def set_basic_information(self, node_id, mutation_name, ccf):
+    def set_basic_information(self, node_id, mutations, ccf):
         self.node_id = node_id
-        self.mutation_name = mutation_name
+        self.mutations = mutations[:]
         self.ccf = ccf
 
     def set_advance_information(self, cnv_N, cnv_T, genotype):
@@ -57,6 +71,8 @@ class TEHtree:
     root = None
     full_information = False
     name_pool = []
+    mutations = []
+    leaf_cell = []
     def __init__(self, file = ""):
         if len(file) == 0:
             #randomly build a tree
@@ -82,6 +98,7 @@ class TEHtree:
     def buildRandomTree(self):
         mroot = Mnode()
         mroot.set_basic_information("1", self.getName(), 100)
+        self.mutations.append(mroot.mutation_name)
         self.root = mroot
         self.recRandomBuild(mroot)
 
@@ -93,12 +110,16 @@ class TEHtree:
             right = ccp - left
             left_node = Mnode()
             left_node.set_basic_information(node.node_id+"0", self.getName(), left)
+            self.mutations.append(left_node.mutation_name)
             node.set_child(left_node)
             right_node = Mnode()
             right_node.set_basic_information(node.node_id + "1", self.getName(), right)
+            self.mutations.append(right_node.mutation_name)
             node.set_child(right_node, False)
             self.recRandomBuild(left_node)
             self.recRandomBuild(right_node)
+        else:
+            self.leaf_cell.append(node)
 
     def readTree(self, file):
         with open(file, 'rb') as msf:
@@ -113,6 +134,7 @@ class TEHtree:
                 mutation_name = line[2]
                 tmp_node = Mnode()
                 tmp_node.set_basic_information(node_id, mutation_name, ccf)
+                self.mutations.append(mutation_name)
                 if self.full_information:
                     tmp_node.set_advance_information(float(line[3]), float(line[4]), int(line[1]))
                 node_dict[node_id] = tmp_node
@@ -151,3 +173,8 @@ class TEHtree:
             self.recout(node.left_child, output_list)
         if node.right_child != None:
             self.recout(node.right_child, output_list)
+    #return all the mutations in the tree
+    def get_mutation_list(self):
+        return self.mutations[:]
+
+    def single_cell_data_generator(self, number_of_cells, fnr, fpr):'''
